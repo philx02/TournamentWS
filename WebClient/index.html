@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<body onload="connect()">
+
+<script>
+function connect()
+{
+  wWebSocket = new WebSocket("ws://localhost:9002");
+  wWebSocket.onopen = function (evt) { greetings(evt); };
+  wWebSocket.onmessage = function (evt) { updateTable(evt); };
+}
+
+function greetings(evt)
+{
+  wWebSocket.send("get");
+}
+
+function updateTable(evt)
+{
+  var wSplit = evt.data.split("|");
+  var wPlayersCouple = wSplit[0].split(";");
+  wPlayersCouple.pop();
+  var wTable = wSplit[1].split(";");
+  var wHtml = "<table style='width:100%'>";
+  wHtml += "<tr><td>&nbsp;</td>"
+  for (i = 0; i < wPlayersCouple.length; ++i)
+  {
+    var wPlayerSplit = wPlayersCouple[i].split(",");
+    wHtml += "<td>" + wPlayerSplit[1] + "</td>";
+  }
+  for (i = 0; i < wPlayersCouple.length; ++i)
+  {
+    var wPlayerSplit = wPlayersCouple[i].split(",");
+    wHtml += "<tr><td>" + wPlayerSplit[1] + "</td>"
+    var wRow = wTable[i].split(",");
+    for (j = 0; j < wPlayersCouple.length; ++j)
+    {
+      wResult = (i == j) ? "---" : (wRow[j] == "") ? "0 - 0" : wRow[j];
+      wHtml += "<td>" + wResult + "</td>";
+    }
+  }
+  wHtml += "</tr>";
+  wHtml += "</table>";
+  document.getElementById("tournament_table").innerHTML = wHtml;
+}
+</script>
+
+<p id="tournament_table"></p>
+
+</body>
+</html> 
