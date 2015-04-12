@@ -68,6 +68,10 @@ public:
 
   void update(ISender &iSender, size_t iTournamentId)
   {
+    mGetTournamentName->clear();
+    mGetPlayers->clear();
+    mGetResultTable->clear();
+
     std::string wMessage;
 
     mGetTournamentName->bind(1, iTournamentId);

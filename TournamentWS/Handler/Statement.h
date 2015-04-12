@@ -34,6 +34,12 @@ public:
     return wResult;
   }
 
+  void clear()
+  {
+    sqlite3_reset(mStatement);
+    sqlite3_clear_bindings(mStatement);
+  }
+
   template< typename T >
   void bind(int iLocation, const T &iValue)
   {

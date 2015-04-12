@@ -5,6 +5,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 #include <hamigaki/iostreams/base64.hpp>
+#include <boost/algorithm/string.hpp>
 
 class Controller
 {
@@ -37,12 +38,23 @@ public:
 private:
   void handleMessage(const std::string &iPayload)
   {
-    if (iPayload == "get")
+    std::vector< std::string > wCommand;
+    boost::split(wCommand, iPayload, boost::is_any_of("|"));
+    if (wCommand.size() != 2)
+    {
+      return;
+    }
+    auto wTournamentId = std::strtoul(wCommand[1].c_str(), nullptr, 10);
+    if (wCommand[0] == "update_all")
+    {
+      mModel->updateAll(wTournamentId);
+    }
+    else if (wCommand[0] == "get")
     {
       auto wSender = mSender.lock();
       if (wSender != nullptr)
       {
-        mModel->update(*wSender, 0);
+        mModel->update(*wSender, wTournamentId);
       }
     }
   }

@@ -67,6 +67,10 @@ h1
   background-color: #EDDA74;
 }
 
+#result_table td.unfinished
+{
+}
+
 #result_table td.score
 {
   font-weight: bold;
@@ -182,6 +186,30 @@ cursor:pointer
 
 <script src="jquery.js"></script>
 <script>
+
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i = 0; i < vars.length; i++) {
+    var pair = vars[i].split("=");
+    // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+      // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [query_string[pair[0]], pair[1]];
+      query_string[pair[0]] = arr;
+      // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  }
+  return query_string;
+}();
+
 function connect()
 {
   wWebSocket = new WebSocket("ws://localhost:9002");
@@ -191,17 +219,17 @@ function connect()
 
 function greetings(evt)
 {
-  wWebSocket.send("get");
+  wWebSocket.send("get|" + QueryString.id);
 }
 
 function updateTable(evt)
 {
+  //document.getElementById("debug").innerText = evt.data;
   var wSplit = evt.data.split("|");
   document.getElementById("tournament_name").innerHTML = wSplit[0];
   var wPlayersCouple = wSplit[1].split(";");
   wPlayersCouple.pop();
   var wTable = wSplit[2].split(";");
-  var wColumnSizePct = 100 / (wPlayersCouple + 1);
   var wHtml = "<table id='result_table'>";
   wHtml += "<tr><th>&nbsp;</th>"
   for (i = 0; i < wPlayersCouple.length; ++i)
@@ -218,8 +246,8 @@ function updateTable(evt)
     {
       if (i != j)
       {
-        wResult = (wRow[j] == "") ? "0 - 0" : wRow[j];
-        wHtml += "<td class='" + (wResult[0] == "2" ? "victory" : "defeat") + "'>" + wResult + "</td>";
+        wResult = (wRow[j] == "") ? "&nbsp;" : wRow[j];
+        wHtml += "<td class='" + (wResult[0] == "2" ? "victory" : wResult[4] == "2" ? "defeat" : "unfinished") + "'>" + wResult + "</td>";
       }
       else
       {
@@ -292,6 +320,8 @@ function div_hide()
 <button onclick='div_show()'>Report Result</button>
   -->
   
+<!-- <p id="debug"></p> -->
+
 <h1 id="tournament_name"></h1>
 <p id="tournament_table"></p>
 

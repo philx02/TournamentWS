@@ -49,10 +49,10 @@ public:
     else if (iMessage.size() < 65536)
     {
       boost::uint16_t wSize = static_cast< boost::uint16_t >(iMessage.size());
-      char *wSizeArray = reinterpret_cast< char * >(wSize);
+      char *wSizeArray = reinterpret_cast< char * >(&wSize);
       wResponseHeader.append(1, 126);
-      wResponseHeader.append(1, wSizeArray[0]);
       wResponseHeader.append(1, wSizeArray[1]);
+      wResponseHeader.append(1, wSizeArray[0]);
     }
     else
     {
