@@ -191,7 +191,9 @@ private:
       wMessage += wPlayerScore.mName + ",";
       wMessage += std::to_string(wPlayerScore.mScore) + ",";
       std::ostringstream wOut;
-      wOut << std::setprecision(3) << (100.0 * static_cast< double >(wPlayerScore.mGameWon) / static_cast< double >(wPlayerScore.mGameWon + wPlayerScore.mGameLoss));
+      auto wTotalGamesPlayed = wPlayerScore.mGameWon + wPlayerScore.mGameLoss;
+      auto wWinRatio = wTotalGamesPlayed != 0 ? 100.0 * static_cast<double>(wPlayerScore.mGameWon) / static_cast<double>(wTotalGamesPlayed) : 0.0;
+      wOut << std::setprecision(3) << wWinRatio;
       wMessage += wOut.str() + "%;";
     }
 
