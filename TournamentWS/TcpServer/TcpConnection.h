@@ -92,7 +92,7 @@ private:
       std::istream wStream(&mPayloadBuffer);
       std::string wLine;
       std::getline(wStream, wLine);
-      std::cout << wLine << std::endl;
+      //std::cout << wLine << std::endl;
       if (!wLine.empty() && wLine.back() == '\r')
       {
         wLine.pop_back();
@@ -153,7 +153,7 @@ private:
       }
       else
       {
-        std::cout << iError.message() << std::endl;
+        //std::cout << iError.message() << std::endl;
         return 0;
       }
     };
