@@ -38,6 +38,11 @@ h1
 {
   width: 10px;
 }
+  
+#leader_board_table td.score
+{
+  width: 10px;
+}
 
 #result_table td, th
 {
@@ -267,13 +272,16 @@ function updateTable(evt)
   wHtml += "</table>";
   document.getElementById("tournament_table").innerHTML = wHtml;
 
+  var wLeaderboardComment = (wSplit[4] != 0) ? (wSplit[4] + " matches to go") : "Final";
+  document.getElementById("leaderboard_title").innerHTML = "Leaderboard (" + wLeaderboardComment + ")";
+
   wHtml = "<table id='leader_board_table'>";
-  var wLeaderBoard = wSplit[4].split(";");
+  var wLeaderBoard = wSplit[5].split(";");
   wLeaderBoard.pop();
   for (i = 0; i < wLeaderBoard.length; ++i)
   {
     var wPlayerScore = wLeaderBoard[i].split(",");
-    wHtml += "<tr><td class='rank'>" + (i+1) + "</td><td>" + wPlayerScore[0] + "</td><td>" + wPlayerScore[1] + "</td></tr>";
+    wHtml += "<tr><td class='rank'>" + (i + 1) + "</td><td>" + wPlayerScore[0] + "</td><td class='score'>" + wPlayerScore[1] + "</td><td>(" + wPlayerScore[2] + ")</td></tr>";
   }
   wHtml += "</table>";
   document.getElementById("leader_board").innerHTML = wHtml;
@@ -324,7 +332,7 @@ function div_hide()
 <h1 id="tournament_name"></h1>
 <p id="tournament_table"></p>
 
-<h1>Leaderboard</h1>
+<h1 id="leaderboard_title"></h1>
 <p id="leader_board"></p>
 
 </body>
