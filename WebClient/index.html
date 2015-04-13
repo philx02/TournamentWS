@@ -228,6 +228,13 @@ function connect()
   }
   wWebSocket.onopen = function (evt) { greetings(evt); };
   wWebSocket.onmessage = function (evt) { updateTable(evt); };
+  wWebSocket.onerror = function (evt) { diconnect(evt); };
+  wWebSocket.onclose = function (evt) { diconnect(evt); };
+}
+
+function disconnect(evt)
+{
+
 }
 
 function greetings(evt)
@@ -339,7 +346,11 @@ function div_hide()
   
 <p id="debug"></p>
 
-<h1 id="tournament_name"></h1>
+<table border="0">
+  <tr>
+    <td><h1 id="tournament_name"></h1></td><td id="disconnect_icon"></td>
+  </tr>
+</table>
 <p id="tournament_table"></p>
 
 <h1 id="leaderboard_title"></h1>
