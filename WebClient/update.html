@@ -40,7 +40,7 @@ var QueryString = function () {
 
 function connect()
 {
-  wWebSocket = new WebSocket("ws://localhost:9002");
+  wWebSocket = new WebSocket(QueryString.server);
   wWebSocket.onopen = function (evt) { greetings(evt); };
   wWebSocket.onmessage = function (evt) { updateSuccess(evt); };
 }
