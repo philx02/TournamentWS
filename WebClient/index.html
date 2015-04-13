@@ -214,9 +214,18 @@ var QueryString = function () {
   return query_string;
 }();
 
+var wWebSocket;
+
 function connect()
 {
-  wWebSocket = new WebSocket(QueryString.server);
+  try
+  {
+    wWebSocket = new WebSocket(QueryString.server);
+  }
+  catch (exc)
+  {
+    document.getElementById("debug").innerHTML = exc.message;
+  }
   wWebSocket.onopen = function (evt) { greetings(evt); };
   wWebSocket.onmessage = function (evt) { updateTable(evt); };
 }
@@ -327,7 +336,7 @@ function div_hide()
 <button onclick='div_show()'>Report Result</button>
   -->
   
-<!-- <p id="debug"></p> -->
+<p id="debug"></p>
 
 <h1 id="tournament_name"></h1>
 <p id="tournament_table"></p>
