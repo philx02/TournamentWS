@@ -240,6 +240,7 @@ function updateTable(evt)
   //document.getElementById("debug").innerText = evt.data;
   var wSplit = evt.data.split("|");
   document.getElementById("tournament_name").innerHTML = wSplit[0];
+  document.title = wSplit[0];
   var wPlayersCouple = wSplit[1].split(";");
   wPlayersCouple.pop();
   var wTable = wSplit[2].split(";");
