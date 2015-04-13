@@ -45,12 +45,6 @@ public:
   {
     std::runtime_error("Statement: cannot bind this type");
   }
-  
-  template<>
-  void bind< size_t >(int iLocation, const size_t &iValue)
-  {
-    sqlite3_bind_int(mStatement, iLocation, iValue);
-  }
 
   template< typename Lambda >
   void evaluate(const Lambda &iLambda)
@@ -61,3 +55,9 @@ public:
 private:
   sqlite3_stmt *mStatement;
 };
+  
+template<>
+void Statement::bind< size_t >(int iLocation, const size_t &iValue)
+{
+  sqlite3_bind_int(mStatement, iLocation, iValue);
+}

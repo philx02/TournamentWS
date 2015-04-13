@@ -8,6 +8,13 @@
 template< typename PayloadHandler >
 class TcpServer
 {
+public:
+  TcpServer(TcpServer &&iServer)
+    : mAcceptor(std::move(iServer.mAcceptor))
+    , mPayloadHandler(iServer.mPayloadHandler)
+  {
+  }
+
 private:
   template< typename T >
   friend TcpServer< T > createTcpServer(boost::asio::io_service &iIoService, const T &iPayloadHandler, unsigned short iPort);
