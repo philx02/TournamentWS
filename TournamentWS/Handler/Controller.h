@@ -2,10 +2,8 @@
 
 #include "Model.h"
 #include "../TcpServer/ISender.h"
-#include <boost/iostreams/filtering_stream.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
-#include <hamigaki/iostreams/base64.hpp>
 #include <boost/algorithm/string.hpp>
+#include <stdexcept>
 
 class Controller
 {
@@ -15,7 +13,7 @@ public:
   {
     if (mModel == nullptr)
     {
-      throw std::exception("Controller received a null model.");
+      throw std::runtime_error("Controller received a null model.");
     }
   }
 
@@ -24,7 +22,7 @@ public:
     mModel->cleanupSender();
   }
 
-  void setSender(std::shared_ptr< ISender > &iSender)
+  void setSender(const std::shared_ptr< ISender > &iSender)
   {
     mModel->addSender(iSender);
     mSender = iSender;

@@ -38,7 +38,7 @@ public:
     }
   }
 
-  void addSender(std::shared_ptr< ISender > &iSender)
+  void addSender(const std::shared_ptr< ISender > &iSender)
   {
     LockGuard wLock(mSenderMutex);
     mSenders.emplace_back(iSender);
@@ -176,7 +176,7 @@ private:
 
     wMessage += "|";
 
-    std::sort(std::begin(wPlayersScore), std::end(wPlayersScore), [](decltype(*std::begin(wPlayersScore)) && iLeft, decltype(*std::begin(wPlayersScore)) && iRight)
+    std::sort(std::begin(wPlayersScore), std::end(wPlayersScore), [](const PlayerScore &iLeft, const PlayerScore &iRight)
     {
       if (iLeft.mScore == iRight.mScore)
       {

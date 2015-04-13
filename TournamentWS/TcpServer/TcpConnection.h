@@ -7,6 +7,9 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/sha1.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <hamigaki/iostreams/base64.hpp>
 
 template< typename PayloadHandler >
 class TcpConnection : public ISender, public std::enable_shared_from_this< TcpConnection< PayloadHandler > >
@@ -35,7 +38,7 @@ public:
 
   void listen()
   {
-    mPayloadHandler.setSender(std::dynamic_pointer_cast< ISender >(shared_from_this()));
+    mPayloadHandler.setSender(std::dynamic_pointer_cast< ISender >(this->shared_from_this()));
     listenForHandshake();
   }
 
@@ -78,7 +81,7 @@ public:
 private:
   void listenForHandshake()
   {
-    boost::asio::async_read_until(mSocket, mPayloadBuffer, "\r\n", boost::bind(&TcpConnection::handleReadHandshake, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    boost::asio::async_read_until(mSocket, mPayloadBuffer, "\r\n", boost::bind(&TcpConnection::handleReadHandshake, this->shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
   }
   
   void handleReadHandshake(const boost::system::error_code &iError, std::size_t iBytesTransfered)
@@ -102,7 +105,7 @@ private:
         mResponse.append("Sec-WebSocket-Accept: ");
         mResponse.append(mSecWebSocketKey);
         mResponse.append("\r\n\r\n");
-        boost::asio::async_write(mSocket, boost::asio::buffer(mResponse), boost::bind(&TcpConnection::handleWriteHandshake, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+        boost::asio::async_write(mSocket, boost::asio::buffer(mResponse), boost::bind(&TcpConnection::handleWriteHandshake, this->shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
       }
       else
       {
@@ -154,7 +157,7 @@ private:
         return 0;
       }
     };
-    boost::asio::async_read(mSocket, mPayloadBuffer, wCompletionCondition, boost::bind(&TcpConnection::handleFragment, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+    boost::asio::async_read(mSocket, mPayloadBuffer, wCompletionCondition, boost::bind(&TcpConnection::handleFragment, this->shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
   }
 
   void handleFragment(const boost::system::error_code &iError, size_t iBytes)
@@ -286,7 +289,7 @@ private:
   {
     if (!iError)
     {
-      boost::asio::async_write(mSocket, boost::asio::buffer(mResponse), boost::bind(&TcpConnection::handleWritePayload, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+      boost::asio::async_write(mSocket, boost::asio::buffer(mResponse), boost::bind(&TcpConnection::handleWritePayload, this->shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
   }
 
