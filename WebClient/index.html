@@ -99,25 +99,6 @@ h1
   font-weight: bold;
 }
 
-#abc
-{
-  width:100%;
-  height:100%;
-  opacity:.95;
-  top:0;
-  left:0;
-  display:none;
-  position:fixed;
-  background-color:#313131;
-  overflow:auto
-}
-
-img#close {
-position:absolute;
-right:-14px;
-top:-14px;
-cursor:pointer
-}
 #report_result_table
 {
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
@@ -128,12 +109,33 @@ cursor:pointer
   border: 0;
   text-align: center;
 }
+
 input
 {
   text-align: center;
 }
 
-div#popupResult {
+#result_submission_div
+{
+  width:100%;
+  height:100%;
+  opacity:1;
+  top:0;
+  left:0;
+  display:none;
+  position:fixed;
+  background-image:url(transpBlack50.png);
+  overflow:auto
+}
+
+img#close {
+position:absolute;
+right:-14px;
+top:-14px;
+cursor:pointer
+}
+
+div#popup_result {
 position:absolute;
 left:50%;
 top:17%;
@@ -181,7 +183,9 @@ border-radius:5px
 </style>  
 </head>
  
-<body onload="connect()">
+<body onload="startup()">
+
+<script src="jquery.js"></script>
 
 <script>
 
@@ -210,6 +214,19 @@ var QueryString = function () {
 
 var wWebSocket;
 
+$(document).on('keydown', function (e)
+{
+  if (e.keyCode === 27) // ESC
+  {
+    div_hide();
+  }
+});
+
+function startup()
+{
+  connect();
+}
+
 function connect()
 {
   try
@@ -220,7 +237,7 @@ function connect()
   {
     document.getElementById("debug").innerHTML = exc.message;
   }
-  wWebSocket.onopen = function (evt) { greetings(evt); };
+  wWebSocket.onopen = function (evt) { greetings(); };
   wWebSocket.onmessage = function (evt) { updateTable(evt); };
   wWebSocket.onerror = function (evt) { try_reconnect(evt); };
   wWebSocket.onclose = function (evt) { try_reconnect(evt); };
@@ -236,7 +253,7 @@ function try_reconnect(evt)
   }
 }
 
-function greetings(evt)
+function greetings()
 {
   wWebSocket.send("get|" + QueryString.id);
 }
@@ -308,38 +325,60 @@ function updateTable(evt)
 
 function submitResult(iPlayer1Id, iPlayer1Name, iPlayer2Id, iPlayer2Name)
 {
-  div_show();
-  document.getElementById("form_player1").innerHTML = iPlayer1Name;
-  document.getElementById("form_player2").innerHTML = iPlayer2Name;
+  document.getElementById("form_player1_id").value = iPlayer1Id;
+  document.getElementById("form_player1_name").innerHTML = iPlayer1Name;
+  document.getElementById("form_player2_id").value = iPlayer2Id;
+  document.getElementById("form_player2_name").innerHTML = iPlayer2Name;
   document.getElementById("form").reset();
+  div_show();
+  document.getElementById("form_score1").focus();
 }
 
 function div_show()
 {
-  document.getElementById('abc').style.display = "block";
+  document.getElementById('result_submission_div').style.display = "block";
 }
 
 function div_hide()
 {
-  document.getElementById('abc').style.display = "none";
+  document.getElementById('result_submission_div').style.display = "none";
 }
+
+function submit_result()
+{
+  var wScorePlayer1 = parseInt(document.getElementById("form_score1").value);
+  var wScorePlayer2 = parseInt(document.getElementById("form_score2").value);
+  if (wScorePlayer1 + wScorePlayer2 > 3 || wScorePlayer1 != 2 && wScorePlayer2 != 2)
+  {
+    alert("error");
+    return;
+  }
+  div_hide();
+  var wSubmission = "submit|" + QueryString.id + "|";
+  wSubmission += document.getElementById("form_player1_id").value + ";";
+  wSubmission += document.getElementById("form_score1").value + ";";
+  wSubmission += document.getElementById("form_player2_id").value + ";";
+  wSubmission += document.getElementById("form_score2").value;
+  wWebSocket.send(wSubmission);
+  greetings();
+}
+
 </script>
   
-<div id="abc">
-  <!-- Popup Div Starts Here -->
-  <div id="popupResult">
-    <!-- Contact Us Form -->
+<div id="result_submission_div">
+  <div id="popup_result">
   <form action="#" id="form" method="post" name="form">
-  <h2>Report Result</h2>
+    <input id="form_player1_id" type="hidden" />
+    <input id="form_player2_id" type="hidden" />
+    <h2>Report Result</h2>
     <hr/>
     <table id="report_result_table">
-      <tr><th id="form_player1"></th><th>VS</th><th id="form_player2"></th></tr>
+      <tr><th id="form_player1_name"></th><th>VS</th><th id="form_player2_name"></th></tr>
       <tr><td><input id="form_score1" class="input_form_score" type="text" maxlength="1" size="3" name="form_score1"/></td><td/><td><input id="form_score2" class="input_form_score" type="text" maxlength="1" size="3" name="form_score1"/></td></tr>
     </table>
-  <p><a href="javascript:%20div_hide()" id="submit">Send</a></p>
+  <p><a href="javascript:%20submit_result()" id="submit">Submit</a></p>
   </form>
   </div>
-  <!-- Popup Div Ends Here -->
 </div>
   
   <!--
