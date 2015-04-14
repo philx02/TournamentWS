@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Statement.h"
+#include "SendEmail.h"
 
 #include <boost/noncopyable.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/random_generator.hpp>
 
 #include <vector>
 #include <algorithm>
@@ -13,6 +17,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <iomanip>
+#include <array>
 
 class Model : public boost::noncopyable
 {
@@ -28,6 +33,8 @@ public:
     mGetTournamentName.reset(new Statement(mSqlite, "SELECT name FROM tournaments WHERE id = ?"));
     mGetPlayers.reset(new Statement(mSqlite, "SELECT id, name FROM players WHERE id IN (SELECT player_id FROM registrations WHERE tournament_id = ?)"));
     mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score FROM match_results WHERE tournament_id = ?"));
+    mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (?1, ?2, ?3, ?4, ?5, 0, ?6, ?7)"));
+    mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email FROM players WHERE id IN (?1, ?2)"));
   }
   
   ~Model()
@@ -82,6 +89,43 @@ public:
       if (wSender != nullptr)
       {
         doUpdate(*wSender, wMessage);
+      }
+    }
+  }
+
+  void handleSubmission(size_t iTournamentId, size_t iPlayer1Id, size_t iPlayer1Score, size_t iPlayer2Id, size_t iPlayer2Score)
+  {
+    if (iPlayer1Id > iPlayer2Id)
+    {
+      std::swap(iPlayer1Id, iPlayer2Id);
+      std::swap(iPlayer1Score, iPlayer2Score);
+    }
+    auto wPlayer1Guid = boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+    auto wPlayer2Guid = boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+    mInsertSubmission->clear();
+    mInsertSubmission->bind(1, iTournamentId);
+    mInsertSubmission->bind(2, iPlayer1Id);
+    mInsertSubmission->bind(3, iPlayer2Id);
+    mInsertSubmission->bind(4, iPlayer1Score);
+    mInsertSubmission->bind(5, iPlayer2Score);
+    mInsertSubmission->bind(6, wPlayer1Guid);
+    mInsertSubmission->bind(7, wPlayer2Guid);
+    if (mInsertSubmission->runOnce() == SQLITE_DONE)
+    {
+      mGetPlayersForSubmission->bind(1, iPlayer1Id);
+      mGetPlayersForSubmission->bind(2, iPlayer2Id);
+      std::vector< std::pair< std::string, std::string > > mEmails;
+      while (mGetPlayersForSubmission->runOnce() == SQLITE_ROW)
+      {
+        mGetPlayersForSubmission->evaluate([&](sqlite3_stmt *iStatement)
+        {
+          mEmails.emplace_back(std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 0))),  std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 1))));
+        });
+      }
+      if (mEmails.size() == 2)
+      {
+        sendEmail(iTournamentId, mEmails[0].first, mEmails[1].first, iPlayer1Id, iPlayer2Id, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
+        sendEmail(iTournamentId, mEmails[1].first, mEmails[0].first, iPlayer2Id, iPlayer1Id, iPlayer2Score, iPlayer1Score, wPlayer1Guid, mEmails[1].second);
       }
     }
   }
@@ -209,6 +253,8 @@ private:
   std::unique_ptr< Statement > mGetTournamentName;
   std::unique_ptr< Statement > mGetPlayers;
   std::unique_ptr< Statement > mGetResultTable;
+  std::unique_ptr< Statement > mInsertSubmission;
+  std::unique_ptr< Statement > mGetPlayersForSubmission;
   std::vector< std::weak_ptr< ISender > > mSenders;
   std::mutex mSenderMutex;
   typedef std::lock_guard< decltype(mSenderMutex) > LockGuard;

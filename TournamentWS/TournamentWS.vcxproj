@@ -86,6 +86,7 @@
   <ItemGroup>
     <ClInclude Include="Handler\Controller.h" />
     <ClInclude Include="Handler\Model.h" />
+    <ClInclude Include="Handler\SendEmail.h" />
     <ClInclude Include="Handler\Statement.h" />
     <ClInclude Include="sqlite\sqlite3.h" />
     <ClInclude Include="TcpServer\TcpConnection.h" />
