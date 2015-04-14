@@ -43,7 +43,7 @@ std::string formatDateForEmail(const bpt::ptime &iDate, const std::string &iTime
   return wDateString.str();
 }
 
-void sendEmail(size_t iTournamentId, const std::string &iName, const std::string &iOpponent, size_t iPlayerId, size_t iOpponentId, size_t iPlayerScore, size_t iOpponentScore, const std::string &iGuid, const std::string &iEmail)
+void sendEmail(const std::string &iTournamentName, const std::string &iName, const std::string &iOpponent, size_t iPlayerScore, size_t iOpponentScore, const std::string &iGuid, const std::string &iEmail)
 {
   static const std::string w220(boost::lexical_cast< std::string >(220));
   static const std::string w501(boost::lexical_cast< std::string >(501));
@@ -84,7 +84,8 @@ void sendEmail(size_t iTournamentId, const std::string &iName, const std::string
     sendToSmtp(wSocket, wDate + formatDateForEmail(bpt::second_clock::universal_time(), "UT"));
     sendToSmtp(wSocket, wContentTypeAndCharset);
     std::string wMessage;
-    wMessage += "<style> p { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
+    wMessage += "<style> p, h2 { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
+    wMessage += "<h2>" + iTournamentName + "</h2>";
     wMessage += "<p>Please, confirm that you have <b>";
     wMessage += iPlayerScore > iOpponentScore ? "WON" : "LOSS";
     wMessage += "</b> the matchup against " + iOpponent;

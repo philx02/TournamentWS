@@ -32,9 +32,13 @@ public:
     }
     mGetTournamentName.reset(new Statement(mSqlite, "SELECT name FROM tournaments WHERE id = ?"));
     mGetPlayers.reset(new Statement(mSqlite, "SELECT id, name FROM players WHERE id IN (SELECT player_id FROM registrations WHERE tournament_id = ?)"));
-    mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score FROM match_results WHERE tournament_id = ?"));
-    mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (?1, ?2, ?3, ?4, ?5, 0, ?6, ?7)"));
+    mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score, approvals FROM match_results WHERE tournament_id = ?"));
+    mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (NULL, ?1, ?2, ?3, ?4, ?5, NULL)"));
     mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email FROM players WHERE id IN (?1, ?2)"));
+    mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?2, ?3)"));
+    mApproveSubmission.reset(new Statement(mSqlite, "UPDATE match_results SET approvals=approvals+1 WHERE id = (SELECT match_result_id FROM result_submissions WHERE id = ?)"));
+    mDeleteSubmissionForApproval.reset(new Statement(mSqlite, "DELETE FROM result_submissions WHERE id = ?"));
+    mDeleteSubmission.reset(new Statement(mSqlite, "DELETE FROM match_results WHERE id = ?"));
   }
   
   ~Model()
@@ -108,10 +112,24 @@ public:
     mInsertSubmission->bind(3, iPlayer2Id);
     mInsertSubmission->bind(4, iPlayer1Score);
     mInsertSubmission->bind(5, iPlayer2Score);
-    mInsertSubmission->bind(6, wPlayer1Guid);
-    mInsertSubmission->bind(7, wPlayer2Guid);
     if (mInsertSubmission->runOnce() == SQLITE_DONE)
     {
+      auto wMatchId = sqlite3_last_insert_rowid(mSqlite);
+
+      // Player 1 approval
+      mInsertSubmissionForApproval->clear();
+      mInsertSubmissionForApproval->bind(1, wMatchId);
+      mInsertSubmissionForApproval->bind(1, wPlayer1Guid);
+      mInsertSubmissionForApproval->runOnce();
+      auto wApprovalPlayer1Id = sqlite3_last_insert_rowid(mSqlite);
+
+      // Player 2 approval
+      mInsertSubmissionForApproval->clear();
+      mInsertSubmissionForApproval->bind(1, wMatchId);
+      mInsertSubmissionForApproval->bind(1, wPlayer2Guid);
+      mInsertSubmissionForApproval->runOnce();
+      auto wApprovalPlayer2Id = sqlite3_last_insert_rowid(mSqlite);
+
       mGetPlayersForSubmission->bind(1, iPlayer1Id);
       mGetPlayersForSubmission->bind(2, iPlayer2Id);
       std::vector< std::pair< std::string, std::string > > mEmails;
@@ -124,13 +142,28 @@ public:
       }
       if (mEmails.size() == 2)
       {
-        sendEmail(iTournamentId, mEmails[0].first, mEmails[1].first, iPlayer1Id, iPlayer2Id, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
-        sendEmail(iTournamentId, mEmails[1].first, mEmails[0].first, iPlayer2Id, iPlayer1Id, iPlayer2Score, iPlayer1Score, wPlayer1Guid, mEmails[1].second);
+        auto wTournamentName = getTournamentName(iTournamentId);
+        sendEmail(wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
+        sendEmail(wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second);
       }
     }
   }
 
 private:
+  std::string getTournamentName(size_t iTournamentId)
+  {
+    std::string wName;
+    mGetTournamentName->bind(1, iTournamentId);
+    while (mGetTournamentName->runOnce() == SQLITE_ROW)
+    {
+      mGetTournamentName->evaluate([&](sqlite3_stmt *iStatement)
+      {
+        wName = std::string(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)));
+      });
+    }
+    return wName;
+  }
+
   std::string createUpdateMessage(size_t iTournamentId)
   {
     mGetTournamentName->clear();
@@ -139,14 +172,7 @@ private:
 
     std::string wMessage;
 
-    mGetTournamentName->bind(1, iTournamentId);
-    while (mGetTournamentName->runOnce() == SQLITE_ROW)
-    {
-      mGetTournamentName->evaluate([&](sqlite3_stmt *iStatement)
-      {
-        wMessage += std::string(reinterpret_cast< const char * >(sqlite3_column_text(iStatement, 0)));
-      });
-    }
+    wMessage += getTournamentName(iTournamentId);
 
     wMessage += "|";
 
@@ -181,20 +207,24 @@ private:
         auto wColumn = wPlayerIdsToIndex[sqlite3_column_int(iStatement, 1)];
         auto wScore1 = sqlite3_column_int(iStatement, 2);
         auto wScore2 = sqlite3_column_int(iStatement, 3);
+        auto wApprovals = sqlite3_column_int(iStatement, 4);
         wPlayersScore[wRow].mGameWon += wScore1;
         wPlayersScore[wRow].mGameLoss += wScore2;
         wPlayersScore[wColumn].mGameWon += wScore2;
         wPlayersScore[wColumn].mGameLoss += wScore1;
-        if (wScore1 == 2)
+        if (wApprovals >= 2)
         {
-          wPlayersScore[wRow].mScore += 3;
+          if (wScore1 == 2)
+          {
+            wPlayersScore[wRow].mScore += 3;
+          }
+          else if (wScore2 == 2)
+          {
+            wPlayersScore[wColumn].mScore += 3;
+          }
         }
-        else if (wScore2 == 2)
-        {
-          wPlayersScore[wColumn].mScore += 3;
-        }
-        wScoreTable[wRow][wColumn] = std::to_string(wScore2) + " - " + std::to_string(wScore1);
-        wScoreTable[wColumn][wRow] = std::to_string(wScore1) + " - " + std::to_string(wScore2);
+        wScoreTable[wRow][wColumn] = std::to_string(wScore2) + " - " + std::to_string(wScore1) + "." + std::to_string(wApprovals);
+        wScoreTable[wColumn][wRow] = std::to_string(wScore1) + " - " + std::to_string(wScore2) + "." + std::to_string(wApprovals);
       });
     }
 
@@ -255,6 +285,10 @@ private:
   std::unique_ptr< Statement > mGetResultTable;
   std::unique_ptr< Statement > mInsertSubmission;
   std::unique_ptr< Statement > mGetPlayersForSubmission;
+  std::unique_ptr< Statement > mInsertSubmissionForApproval;
+  std::unique_ptr< Statement > mDeleteSubmissionForApproval;
+  std::unique_ptr< Statement > mDeleteSubmission;
+  std::unique_ptr< Statement > mApproveSubmission;
   std::vector< std::weak_ptr< ISender > > mSenders;
   std::mutex mSenderMutex;
   typedef std::lock_guard< decltype(mSenderMutex) > LockGuard;
