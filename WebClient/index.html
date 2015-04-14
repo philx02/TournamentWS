@@ -84,14 +84,14 @@ h1
 
 #result_table td.unfinished
 {
-  vertical-align: center;
+  vertical-align: middle;
   padding: 0 0 0 0;
+  font-style: italic;
 }
 
 #edit_result
 {
   cursor: pointer;
-  cursor: hand;
 }
 
 #result_table td.score
@@ -286,8 +286,20 @@ function updateTable(evt)
     {
       if (i != j)
       {
-        wResult = (wRow[j] == "") ? "<img id='edit_result' onclick='submitResult(" + wPlayerIds[j].id + ", \"" + wPlayerIds[j].name + "\", " + wPlayerIds[i].id + ", \"" + wPlayerIds[i].name + "\")' src='edit.png' height='20' width='20'/>" : wRow[j];
-        wHtml += "<td class='" + (wResult[0] == "2" ? "victory" : wResult[4] == "2" ? "defeat" : "unfinished") + "'>" + wResult + "</td>";
+        var wResult;
+        var wClass;
+        if (wRow[j] == "")
+        {
+          wResult = "<img id='edit_result' onclick='submitResult(" + wPlayerIds[j].id + ", \"" + wPlayerIds[j].name + "\", " + wPlayerIds[i].id + ", \"" + wPlayerIds[i].name + "\")' src='edit.png' height='20' width='20'/>";
+          wClass = "unfinished";
+        }
+        else
+        {
+          var wResultSplit = wRow[j].split(".");
+          wResult = wResultSplit[0];
+          wClass = wResultSplit[1] >= 2 ? (wResult[0] == 2 ? "victory" : wResult[4] == 2 ? "defeat" : "unfinished") : "unfinished";
+        }
+        wHtml += "<td class='" + wClass + "'>" + wResult + "</td>";
       }
       else
       {
