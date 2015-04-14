@@ -8,6 +8,16 @@ h1
   font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 }
 
+#title_table table, tr, td, th
+{
+  padding: 0 0 0 0;
+}
+
+#title_table td.disc
+{
+  padding: 0 0 0 200px;
+}
+
 #result_table
 {
   background: white;
@@ -228,6 +238,18 @@ function connect()
   }
   wWebSocket.onopen = function (evt) { greetings(evt); };
   wWebSocket.onmessage = function (evt) { updateTable(evt); };
+  wWebSocket.onerror = function (evt) { try_reconnect(evt); };
+  wWebSocket.onclose = function (evt) { try_reconnect(evt); };
+}
+
+function try_reconnect(evt)
+{
+  if (wWebSocket.readyState != 0 && wWebSocket.readyState != 1)
+  {
+    document.getElementById("disconnect_image").innerHTML = "<img src='disconnected-128.png' height='40' width='40'/>";
+    connect();
+    setTimeout(try_reconnect, 5000, evt);
+  }
 }
 
 function greetings(evt)
@@ -237,6 +259,7 @@ function greetings(evt)
 
 function updateTable(evt)
 {
+  document.getElementById("disconnect_image").innerHTML = "";
   //document.getElementById("debug").innerText = evt.data;
   var wSplit = evt.data.split("|");
   document.getElementById("tournament_name").innerHTML = wSplit[0];
@@ -337,9 +360,15 @@ function div_hide()
 <button onclick='div_show()'>Report Result</button>
   -->
   
-<p id="debug"></p>
+<!-- <p id="debug"></p> -->
 
-<h1 id="tournament_name"></h1>
+<table id="title_table">
+  <tr>
+    <td><h1 id="tournament_name"></h1></td>
+    <td id="disconnect_image" class="disc"></td>
+  </tr>
+</table>
+
 <p id="tournament_table"></p>
 
 <h1 id="leaderboard_title"></h1>
