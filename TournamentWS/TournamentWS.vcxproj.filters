@@ -50,5 +50,8 @@
     <ClInclude Include="sqlite\sqlite3.h">
       <Filter>Source Files\sqlite</Filter>
     </ClInclude>
+    <ClInclude Include="Handler\SendEmail.h">
+      <Filter>Source Files\Handler</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

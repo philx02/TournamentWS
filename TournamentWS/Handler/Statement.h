@@ -43,7 +43,7 @@ public:
   template< typename T >
   void bind(int iLocation, const T &iValue)
   {
-    std::runtime_error("Statement: cannot bind this type");
+    throw std::runtime_error("Statement: cannot bind this type");
   }
 
   template< typename Lambda >
@@ -60,4 +60,10 @@ template<>
 void Statement::bind< size_t >(int iLocation, const size_t &iValue)
 {
   sqlite3_bind_int(mStatement, iLocation, iValue);
+}
+
+template<>
+void Statement::bind< std::string >(int iLocation, const std::string &iValue)
+{
+  sqlite3_bind_text(mStatement, iLocation, iValue.c_str(), iValue.size(), SQLITE_TRANSIENT);
 }
