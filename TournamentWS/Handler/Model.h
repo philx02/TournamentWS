@@ -30,6 +30,7 @@ public:
     {
       throw std::runtime_error(sqlite3_errstr(wResult));
     }
+    Statement(mSqlite, "PRAGMA foreign_keys = ON").runOnce();
     mGetTournamentName.reset(new Statement(mSqlite, "SELECT name FROM tournaments WHERE id = ?"));
     mGetPlayers.reset(new Statement(mSqlite, "SELECT id, name FROM players WHERE id IN (SELECT player_id FROM registrations WHERE tournament_id = ?)"));
     mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score, approvals FROM match_results WHERE tournament_id = ?"));
@@ -97,7 +98,7 @@ public:
     }
   }
 
-  void handleSubmission(size_t iTournamentId, size_t iPlayer1Id, size_t iPlayer1Score, size_t iPlayer2Id, size_t iPlayer2Score)
+  void handleSubmission(size_t iTournamentId, size_t iPlayer1Id, size_t iPlayer1Score, size_t iPlayer2Id, size_t iPlayer2Score, const std::string &iUrl, const std::string &iServer)
   {
     if (iPlayer1Id > iPlayer2Id)
     {
@@ -121,15 +122,14 @@ public:
       mInsertSubmissionForApproval->bind(1, wMatchId);
       mInsertSubmissionForApproval->bind(2, wPlayer1Guid);
       mInsertSubmissionForApproval->runOnce();
-      auto wApprovalPlayer1Id = sqlite3_last_insert_rowid(mSqlite);
 
       // Player 2 approval
       mInsertSubmissionForApproval->clear();
       mInsertSubmissionForApproval->bind(1, wMatchId);
       mInsertSubmissionForApproval->bind(2, wPlayer2Guid);
       mInsertSubmissionForApproval->runOnce();
-      auto wApprovalPlayer2Id = sqlite3_last_insert_rowid(mSqlite);
 
+      mGetPlayersForSubmission->clear();
       mGetPlayersForSubmission->bind(1, iPlayer1Id);
       mGetPlayersForSubmission->bind(2, iPlayer2Id);
       std::vector< std::pair< std::string, std::string > > mEmails;
@@ -143,8 +143,8 @@ public:
       if (mEmails.size() == 2)
       {
         auto wTournamentName = getTournamentName(iTournamentId);
-        //sendEmail(wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
-        //sendEmail(wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second);
+        sendEmail(iTournamentId, wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second, iUrl, iServer);
+        sendEmail(iTournamentId, wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second, iUrl, iServer);
       }
     }
   }
@@ -219,7 +219,6 @@ private:
     size_t wMatchesDone = 0;
     while (mGetResultTable->runOnce() == SQLITE_ROW)
     {
-      ++wMatchesDone;
       mGetResultTable->evaluate([&](sqlite3_stmt *iStatement)
       {
         auto wRow = wPlayerIdsToIndex[sqlite3_column_int(iStatement, 0)];
@@ -233,6 +232,7 @@ private:
         wPlayersScore[wColumn].mGameLoss += wScore1;
         if (wApprovals >= 2)
         {
+          ++wMatchesDone;
           if (wScore1 == 2)
           {
             wPlayersScore[wRow].mScore += 3;

@@ -43,7 +43,7 @@ std::string formatDateForEmail(const bpt::ptime &iDate, const std::string &iTime
   return wDateString.str();
 }
 
-void sendEmail(const std::string &iTournamentName, const std::string &iName, const std::string &iOpponent, size_t iPlayerScore, size_t iOpponentScore, const std::string &iGuid, const std::string &iEmail)
+void sendEmail(size_t iTournamentId, const std::string &iTournamentName, const std::string &iName, const std::string &iOpponent, size_t iPlayerScore, size_t iOpponentScore, const std::string &iGuid, const std::string &iEmail, const std::string &iUrl, const std::string &iServer)
 {
   static const std::string w220(boost::lexical_cast< std::string >(220));
   static const std::string w501(boost::lexical_cast< std::string >(501));
@@ -87,11 +87,12 @@ void sendEmail(const std::string &iTournamentName, const std::string &iName, con
     wMessage += "<style> p, h2 { font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif; } </style>";
     wMessage += "<h2>" + iTournamentName + "</h2>";
     wMessage += "<p>Please, confirm that you have <b>";
-    wMessage += iPlayerScore > iOpponentScore ? "WON" : "LOSS";
+    wMessage += iPlayerScore > iOpponentScore ? "WON" : "LOST";
     wMessage += "</b> the matchup against " + iOpponent;
     wMessage += " by a score of <b>" + std::to_string(iPlayerScore) + " - " + std::to_string(iOpponentScore) + "</b>.</p>";
-    wMessage += "<p><a href='google.com'>I agree</a></p>";
-    wMessage += "<p><a href='google.com'>I disagree</a></p>";
+    std::string wUrl = iUrl + "?id=" + std::to_string(iTournamentId) + "&server=" + iServer + "&guid=" + iGuid + "&agree=";
+    wMessage += "<p><a href='" + wUrl + "1" + "'>I agree</a></p>";
+    wMessage += "<p><a href='" + wUrl + "0" + "'>I disagree</a></p>";
     sendToSmtp(wSocket, wMessage);
     sendToSmtp(wSocket, wFinish);
     readFromSmtp(wSocket, w250);

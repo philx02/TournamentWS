@@ -356,6 +356,17 @@ function div_hide()
   document.getElementById('result_submission_div').style.display = "none";
 }
 
+function getConfigurationUrl()
+{
+  var wUrl = [location.protocol, '//', location.host, location.pathname].join('');
+  wUrl = wUrl.replace("index.html", "");
+  if (wUrl.slice(-1) != "/") {
+    wUrl += "/";
+  }
+  wUrl += "confirmation.html";
+  return wUrl;
+}
+
 function submit_result()
 {
   var wScorePlayer1 = parseInt(document.getElementById("form_score1").value);
@@ -371,6 +382,7 @@ function submit_result()
   wSubmission += document.getElementById("form_score1").value + ";";
   wSubmission += document.getElementById("form_player2_id").value + ";";
   wSubmission += document.getElementById("form_score2").value;
+  wSubmission += "|" + getConfigurationUrl() + "|" + QueryString.server;
   wWebSocket.send(wSubmission);
 }
 
@@ -391,10 +403,6 @@ function submit_result()
   </form>
   </div>
 </div>
-  
-  <!--
-<button onclick='div_show()'>Report Result</button>
-  -->
   
 <!-- <p id="debug"></p> -->
 
