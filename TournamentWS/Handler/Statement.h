@@ -43,7 +43,7 @@ public:
   template< typename T >
   void bind(int iLocation, const T &iValue)
   {
-    std::runtime_error("Statement: cannot bind this type");
+    throw std::runtime_error("Statement: cannot bind this type");
   }
 
   template< typename Lambda >

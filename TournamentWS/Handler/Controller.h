@@ -66,7 +66,18 @@ private:
         auto wPlayer2Id = std::strtoul(wValues[2].c_str(), nullptr, 10);
         auto wPlayer2Score = std::strtoul(wValues[3].c_str(), nullptr, 10);
         mModel->handleSubmission(wTournamentId, wPlayer1Id, wPlayer1Score, wPlayer2Id, wPlayer2Score);
+        mModel->updateAll(wTournamentId);
       }
+    }
+    else if (wCommand[0] == "agree")
+    {
+      mModel->handleResultAgreement(wCommand[2]);
+      mModel->updateAll(wTournamentId);
+    }
+    else if (wCommand[0] == "disagree")
+    {
+      mModel->handleResultDisagreement(wCommand[2]);
+      mModel->updateAll(wTournamentId);
     }
   }
 

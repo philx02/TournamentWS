@@ -33,12 +33,12 @@ public:
     mGetTournamentName.reset(new Statement(mSqlite, "SELECT name FROM tournaments WHERE id = ?"));
     mGetPlayers.reset(new Statement(mSqlite, "SELECT id, name FROM players WHERE id IN (SELECT player_id FROM registrations WHERE tournament_id = ?)"));
     mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score, approvals FROM match_results WHERE tournament_id = ?"));
-    mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (NULL, ?1, ?2, ?3, ?4, ?5, NULL)"));
+    mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (NULL, ?1, ?2, ?3, ?4, ?5, 0)"));
     mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email FROM players WHERE id IN (?1, ?2)"));
-    mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?2, ?3)"));
-    mApproveSubmission.reset(new Statement(mSqlite, "UPDATE match_results SET approvals=approvals+1 WHERE id = (SELECT match_result_id FROM result_submissions WHERE id = ?)"));
-    mDeleteSubmissionForApproval.reset(new Statement(mSqlite, "DELETE FROM result_submissions WHERE id = ?"));
-    mDeleteSubmission.reset(new Statement(mSqlite, "DELETE FROM match_results WHERE id = ?"));
+    mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?1, ?2)"));
+    mApproveSubmission.reset(new Statement(mSqlite, "UPDATE match_results SET approvals=approvals+1 WHERE id = (SELECT match_result_id FROM result_submissions WHERE player_guid = ?)"));
+    mDeleteSubmissionForApproval.reset(new Statement(mSqlite, "DELETE FROM result_submissions WHERE player_guid = ?"));
+    mDeleteSubmission.reset(new Statement(mSqlite, "DELETE FROM match_results WHERE id = (SELECT match_result_id FROM result_submissions WHERE player_guid = ?)"));
   }
   
   ~Model()
@@ -114,19 +114,19 @@ public:
     mInsertSubmission->bind(5, iPlayer2Score);
     if (mInsertSubmission->runOnce() == SQLITE_DONE)
     {
-      auto wMatchId = sqlite3_last_insert_rowid(mSqlite);
+      auto wMatchId = static_cast< size_t >(sqlite3_last_insert_rowid(mSqlite));
 
       // Player 1 approval
       mInsertSubmissionForApproval->clear();
       mInsertSubmissionForApproval->bind(1, wMatchId);
-      mInsertSubmissionForApproval->bind(1, wPlayer1Guid);
+      mInsertSubmissionForApproval->bind(2, wPlayer1Guid);
       mInsertSubmissionForApproval->runOnce();
       auto wApprovalPlayer1Id = sqlite3_last_insert_rowid(mSqlite);
 
       // Player 2 approval
       mInsertSubmissionForApproval->clear();
       mInsertSubmissionForApproval->bind(1, wMatchId);
-      mInsertSubmissionForApproval->bind(1, wPlayer2Guid);
+      mInsertSubmissionForApproval->bind(2, wPlayer2Guid);
       mInsertSubmissionForApproval->runOnce();
       auto wApprovalPlayer2Id = sqlite3_last_insert_rowid(mSqlite);
 
@@ -143,10 +143,29 @@ public:
       if (mEmails.size() == 2)
       {
         auto wTournamentName = getTournamentName(iTournamentId);
-        sendEmail(wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
-        sendEmail(wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second);
+        //sendEmail(wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second);
+        //sendEmail(wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second);
       }
     }
+  }
+
+  void handleResultAgreement(const std::string &iPlayerGuid)
+  {
+    mApproveSubmission->clear();
+    mApproveSubmission->bind(1, iPlayerGuid);
+    if (mApproveSubmission->runOnce() == SQLITE_DONE && sqlite3_changes(mSqlite) == 1)
+    {
+      mDeleteSubmissionForApproval->clear();
+      mDeleteSubmissionForApproval->bind(1, iPlayerGuid);
+      mDeleteSubmissionForApproval->runOnce();
+    }
+  }
+
+  void handleResultDisagreement(const std::string &iPlayerGuid)
+  {
+    mDeleteSubmission->clear();
+    mDeleteSubmission->bind(1, iPlayerGuid);
+    mDeleteSubmission->runOnce();
   }
 
 private:
@@ -286,9 +305,10 @@ private:
   std::unique_ptr< Statement > mInsertSubmission;
   std::unique_ptr< Statement > mGetPlayersForSubmission;
   std::unique_ptr< Statement > mInsertSubmissionForApproval;
+  std::unique_ptr< Statement > mGetMatchResultIdFromGuid;
+  std::unique_ptr< Statement > mApproveSubmission;
   std::unique_ptr< Statement > mDeleteSubmissionForApproval;
   std::unique_ptr< Statement > mDeleteSubmission;
-  std::unique_ptr< Statement > mApproveSubmission;
   std::vector< std::weak_ptr< ISender > > mSenders;
   std::mutex mSenderMutex;
   typedef std::lock_guard< decltype(mSenderMutex) > LockGuard;
