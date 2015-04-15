@@ -55,7 +55,7 @@ private:
         mModel->update(*wSender, wTournamentId);
       }
     }
-    else if (wCommand[0] == "submit" && wCommand.size() == 3)
+    else if (wCommand[0] == "submit" && wCommand.size() == 5)
     {
       std::vector< std::string > wValues;
       boost::split(wValues, wCommand[2], boost::is_any_of(";"));
@@ -65,7 +65,7 @@ private:
         auto wPlayer1Score = std::strtoul(wValues[1].c_str(), nullptr, 10);
         auto wPlayer2Id = std::strtoul(wValues[2].c_str(), nullptr, 10);
         auto wPlayer2Score = std::strtoul(wValues[3].c_str(), nullptr, 10);
-        mModel->handleSubmission(wTournamentId, wPlayer1Id, wPlayer1Score, wPlayer2Id, wPlayer2Score);
+        mModel->handleSubmission(wTournamentId, wPlayer1Id, wPlayer1Score, wPlayer2Id, wPlayer2Score, wCommand[3], wCommand[4]);
         mModel->updateAll(wTournamentId);
       }
     }
