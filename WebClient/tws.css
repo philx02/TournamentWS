@@ -1,0 +1,181 @@
+body
+{
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+#title_table table, tr, td, th
+{
+  padding: 0 0 0 0;
+}
+
+#title_table td.disc
+{
+  padding: 0 0 0 200px;
+}
+
+#result_table
+{
+  background: white;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid black;
+  table-layout: fixed;
+}
+
+#leader_board_table
+{
+  background: white;
+  border-radius: 10px;
+  text-align: left;
+  table-layout: fixed;
+}
+
+#leader_board_table td, th
+{
+  text-align: left;
+  padding: 3px 7px 2px 7px;
+  width: 100px;
+}
+
+#leader_board_table td.rank
+{
+  width: 10px;
+}
+
+#leader_board_table td.score
+{
+  width: 10px;
+}
+
+#result_table td, th
+{
+  text-align: center;
+  border: 1px solid black;
+  padding: 3px 7px 2px 7px;
+  width: 100px;
+}
+
+#result_table td.names
+{
+  text-align: left;
+}
+
+#result_table td.invalid
+{
+  background-color: black;
+}
+
+#result_table td.victory
+{
+  background-color: #CCFB5D;
+}
+
+#result_table td.defeat
+{
+  background-color: #EDDA74;
+}
+
+#result_table td.unfinished
+{
+  vertical-align: middle;
+  padding: 0 0 0 0;
+  font-style: italic;
+}
+
+#edit_result
+{
+  cursor: pointer;
+}
+
+#result_table td.score
+{
+  font-weight: bold;
+}
+
+#report_result_table th, td
+{
+  border: 0;
+  text-align: center;
+}
+
+input
+{
+  text-align: center;
+}
+
+#result_submission_div
+{
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  top: 0;
+  left: 0;
+  display: none;
+  position: fixed;
+  background-image: url(transpBlack50.png);
+  overflow: auto;
+}
+
+img#close
+{
+  position: absolute;
+  right: -14px;
+  top: -14px;
+  cursor: pointer;
+}
+
+div#popup_result
+{
+  position: absolute;
+  left: 50%;
+  top: 17%;
+  margin-left: -300px;
+}
+
+form
+{
+  max-width: 500px;
+  min-width: 250px;
+  padding: 10px 50px;
+  border: 2px solid gray;
+  border-radius: 10px;
+  font-family: raleway;
+  background-color: #fff;
+}
+
+h2
+{
+  background-color: #FEFFED;
+  padding: 20px 35px;
+  margin: -10px -50px;
+  text-align: center;
+  border-radius: 10px 10px 0 0;
+}
+
+hr
+{
+  margin: 10px -50px;
+  border: 0;
+  border-top: 1px solid #ccc;
+}
+
+#form_submission_error
+{
+  color: red;
+  text-align: center;
+}
+
+#submit
+{
+  text-decoration: none;
+  width: 100%;
+  text-align: center;
+  display: block;
+  background-color: #FFBC00;
+  color: #fff;
+  border: 1px solid #FFCB00;
+  padding: 10px 0;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
