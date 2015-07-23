@@ -34,7 +34,7 @@ body
 {
   text-align: left;
   padding: 3px 7px 2px 7px;
-  width: 100px;
+  width: 120px;
 }
 
 #leader_board_table td.rank
@@ -53,6 +53,7 @@ body
   border: 1px solid black;
   padding: 3px 7px 2px 7px;
   width: 100px;
+  height: 40px;
 }
 
 #result_table td.names
