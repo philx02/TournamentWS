@@ -91,6 +91,7 @@
     <ClInclude Include="sqlite\sqlite3.h" />
     <ClInclude Include="TcpServer\TcpConnection.h" />
     <ClInclude Include="TcpServer\TcpServer.h" />
+    <ClInclude Include="TcpServer\WebSocketConnection.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
