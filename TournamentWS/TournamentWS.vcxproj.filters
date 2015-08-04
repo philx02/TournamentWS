@@ -53,5 +53,8 @@
     <ClInclude Include="Handler\SendEmail.h">
       <Filter>Source Files\Handler</Filter>
     </ClInclude>
+    <ClInclude Include="TcpServer\WebSocketConnection.h">
+      <Filter>Source Files\TcpServer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
