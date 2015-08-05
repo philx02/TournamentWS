@@ -23,13 +23,14 @@ function redirect()
 {
   var wServer = QueryString.server.replace("ws://", "");
   wServerSplit = wServer.split(":");
+  wPort = +wServerSplit[1] + 1;
   if (QueryString.agree == 1)
   {
-    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + (wServerSplit[1] + 1) + "\u0026string=" + "agree|" + QueryString.id + "|" + QueryString.guid);
+    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + wPort.toString() + "\u0026string=" + "agree|" + QueryString.id + "|" + QueryString.guid);
   }
   else
   {
-    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + (wServerSplit[1] + 1) + "\u0026string=" + "disagree|" + QueryString.id + "|" + QueryString.guid);
+    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + wPort.toString() + "\u0026string=" + "disagree|" + QueryString.id + "|" + QueryString.guid);
   }
 }
  
