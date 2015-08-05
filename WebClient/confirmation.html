@@ -4,14 +4,35 @@
 <title></title>
 <link rel="stylesheet" type="text/css" href="tws.css"/>
 </head>
- 
+
+<![if IE]>
+<p>You are using Internet Explorer.</p>
+<body onload="redirect()">
+<![endif]>
+
+<![if !IE]>
 <body onload="startup()">
-  
+<![endif]>
+    
 <script src="jquery.js"></script>
 <script src="common.js"></script>
 
 <script>
-
+ 
+function redirect()
+{
+  var wServer = QueryString.server.replace("ws://", "");
+  wServerSplit = wServer.split(":");
+  if (QueryString.agree == 1)
+  {
+    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + (wServerSplit[1] + 1) + "\u0026string=" + "agree|" + QueryString.id + "|" + QueryString.guid);
+  }
+  else
+  {
+    window.location.replace("send_confirmation.php?server=" + wServerSplit[0] + "\u0026port=" + (wServerSplit[1] + 1) + "\u0026string=" + "disagree|" + QueryString.id + "|" + QueryString.guid);
+  }
+}
+ 
 var wWebSocket;
 
 function startup()
