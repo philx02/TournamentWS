@@ -5,18 +5,32 @@
 <link rel="stylesheet" type="text/css" href="tws.css"/>
 </head>
  
-<body onload="startup()">
+<body onload="check_args()">
 
 <script src="jquery.js"></script>
 <script src="common.js"></script>
 <script src="index.js"></script>
+
+<script>
+  function check_args()
+  {
+    if (QueryString.hasOwnProperty("id"))
+    {
+      startup();
+    }
+    else
+    {
+      window.location.href = './intro.html';
+    }
+  }
+</script>
   
 <div id="result_submission_div">
   <div id="popup_result">
   <form action="#" id="form" method="post" name="form">
     <input id="form_player1_id" type="hidden" />
     <input id="form_player2_id" type="hidden" />
-    <h2>Report Result</h2>
+    <h2 class="report_result_h2">Report Result</h2>
     <hr/>
     <table id="report_result_table">
       <tr><th id="form_player1_name"></th><th>VS</th><th id="form_player2_name"></th></tr>
@@ -28,8 +42,6 @@
   </div>
 </div>
   
-<!-- <p id="debug"></p> -->
-
 <table id="title_table">
   <tr>
     <td><h1 id="tournament_name"></h1></td>

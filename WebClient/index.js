@@ -21,7 +21,7 @@ function connect()
   }
   catch (exc)
   {
-    document.getElementById("debug").innerHTML = exc.message;
+    console.log(exc.message);
   }
   wWebSocket.onopen = function (evt) { greetings(); };
   wWebSocket.onmessage = function (evt) { updateTable(evt); };
@@ -47,7 +47,6 @@ function greetings()
 function updateTable(evt)
 {
   document.getElementById("disconnect_image").innerHTML = "";
-  //document.getElementById("debug").innerText = evt.data;
   var wSplit = evt.data.split("|");
   document.getElementById("tournament_name").innerHTML = wSplit[0];
   document.title = wSplit[0];
