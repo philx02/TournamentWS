@@ -35,7 +35,7 @@ public:
     mGetPlayers.reset(new Statement(mSqlite, "SELECT id, name FROM players WHERE id IN (SELECT player_id FROM registrations WHERE tournament_id = ?)"));
     mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score, approvals FROM match_results WHERE tournament_id = ?"));
     mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (NULL, ?1, ?2, ?3, ?4, ?5, 0)"));
-    mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email FROM players WHERE id IN (?1, ?2)"));
+    mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email, auto_agree FROM players WHERE id IN (?1, ?2)"));
     mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?1, ?2)"));
     mApproveSubmission.reset(new Statement(mSqlite, "UPDATE match_results SET approvals=approvals+1 WHERE id = (SELECT match_result_id FROM result_submissions WHERE player_guid = ?)"));
     mDeleteSubmissionForApproval.reset(new Statement(mSqlite, "DELETE FROM result_submissions WHERE player_guid = ?"));
@@ -132,19 +132,36 @@ public:
       mGetPlayersForSubmission->clear();
       mGetPlayersForSubmission->bind(1, iPlayer1Id);
       mGetPlayersForSubmission->bind(2, iPlayer2Id);
-      std::vector< std::pair< std::string, std::string > > mEmails;
+      std::vector< std::tuple< std::string, std::string, size_t > > mEmails;
       while (mGetPlayersForSubmission->runOnce() == SQLITE_ROW)
       {
         mGetPlayersForSubmission->evaluate([&](sqlite3_stmt *iStatement)
         {
-          mEmails.emplace_back(std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 0))),  std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 1))));
+          mEmails.emplace_back(
+            std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 0))),
+            std::string(reinterpret_cast<const char *>(sqlite3_column_text(iStatement, 1))),
+            sqlite3_column_int(iStatement, 2));
         });
       }
       if (mEmails.size() == 2)
       {
         auto wTournamentName = getTournamentName(iTournamentId);
-        sendEmail(iTournamentId, wTournamentName, mEmails[0].first, mEmails[1].first, iPlayer1Score, iPlayer2Score, wPlayer1Guid, mEmails[0].second, iUrl, iServer);
-        sendEmail(iTournamentId, wTournamentName, mEmails[1].first, mEmails[0].first, iPlayer2Score, iPlayer1Score, wPlayer2Guid, mEmails[1].second, iUrl, iServer);
+        if (std::get< 2 >(mEmails[0]) == 0)
+        {
+          sendEmail(iTournamentId, wTournamentName, std::get< 0 >(mEmails[0]), std::get< 0 >(mEmails[1]), iPlayer1Score, iPlayer2Score, wPlayer1Guid, std::get< 1 >(mEmails[0]), iUrl, iServer);
+        }
+        else
+        {
+          handleResultAgreement(wPlayer1Guid);
+        }
+        if (std::get< 2 >(mEmails[1]) == 0)
+        {
+          sendEmail(iTournamentId, wTournamentName, std::get< 0 >(mEmails[1]), std::get< 0 >(mEmails[0]), iPlayer2Score, iPlayer1Score, wPlayer2Guid, std::get< 1 >(mEmails[1]), iUrl, iServer);
+        }
+        else
+        {
+          handleResultAgreement(wPlayer2Guid);
+        }
       }
     }
   }
