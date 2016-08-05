@@ -13,14 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Handler">
-      <UniqueIdentifier>{e8847637-9ac7-43aa-8b62-7a68df2fca49}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\TcpServer">
-      <UniqueIdentifier>{8954cb3f-88b2-4dfd-a692-9ddeace6c2e1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\sqlite">
-      <UniqueIdentifier>{38626faa-97ec-4d3b-b8e6-0451a09d247f}</UniqueIdentifier>
+      <UniqueIdentifier>{ec795674-b7d7-42ff-b2de-9e01e43987c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -32,28 +26,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TcpServer\TcpConnection.h">
-      <Filter>Source Files\TcpServer</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpServer\TcpServer.h">
-      <Filter>Source Files\TcpServer</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler\Controller.h">
-      <Filter>Source Files\Handler</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler\Model.h">
-      <Filter>Source Files\Handler</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler\SendEmail.h">
-      <Filter>Source Files\Handler</Filter>
-    </ClInclude>
-    <ClInclude Include="TcpServer\WebSocketConnection.h">
-      <Filter>Source Files\TcpServer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sqlite\Statement.h">
+    <ClInclude Include="..\include\sqlite\sqlite3.h">
       <Filter>Source Files\sqlite</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\sqlite\sqlite3.h">
+    <ClInclude Include="..\include\sqlite\Statement.h">
       <Filter>Source Files\sqlite</Filter>
     </ClInclude>
   </ItemGroup>

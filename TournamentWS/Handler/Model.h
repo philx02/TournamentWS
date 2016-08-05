@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Statement.h"
+#include <sqlite/Statement.h>
 #include "SendEmail.h"
 
 #include <boost/noncopyable.hpp>
@@ -36,7 +36,7 @@ public:
     mGetResultTable.reset(new Statement(mSqlite, "SELECT player1_id, player2_id, player1_score, player2_score, approvals FROM match_results WHERE tournament_id = ?"));
     mInsertSubmission.reset(new Statement(mSqlite, "INSERT INTO match_results VALUES (NULL, ?1, ?2, ?3, ?4, ?5, 0)"));
     mGetPlayersForSubmission.reset(new Statement(mSqlite, "SELECT name, email, auto_agree FROM players WHERE id IN (?1, ?2)"));
-    mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?1, ?2)"));
+    mInsertSubmissionForApproval.reset(new Statement(mSqlite, "INSERT INTO result_submissions VALUES (NULL, ?1, ?2, ?3)"));
     mApproveSubmission.reset(new Statement(mSqlite, "UPDATE match_results SET approvals=approvals+1 WHERE id = (SELECT match_result_id FROM result_submissions WHERE player_guid = ?)"));
     mDeleteSubmissionForApproval.reset(new Statement(mSqlite, "DELETE FROM result_submissions WHERE player_guid = ?"));
     mDeleteSubmission.reset(new Statement(mSqlite, "DELETE FROM match_results WHERE id = (SELECT match_result_id FROM result_submissions WHERE player_guid = ?)"));
@@ -116,17 +116,20 @@ public:
     if (mInsertSubmission->runOnce() == SQLITE_DONE)
     {
       auto wMatchId = static_cast< size_t >(sqlite3_last_insert_rowid(mSqlite));
+      auto wNowUnixTimestamp = static_cast< int >(std::chrono::duration_cast< std::chrono::seconds >(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
 
       // Player 1 approval
       mInsertSubmissionForApproval->clear();
       mInsertSubmissionForApproval->bind(1, wMatchId);
       mInsertSubmissionForApproval->bind(2, wPlayer1Guid);
+      mInsertSubmissionForApproval->bind(3, wNowUnixTimestamp);
       mInsertSubmissionForApproval->runOnce();
 
       // Player 2 approval
       mInsertSubmissionForApproval->clear();
       mInsertSubmissionForApproval->bind(1, wMatchId);
       mInsertSubmissionForApproval->bind(2, wPlayer2Guid);
+      mInsertSubmissionForApproval->bind(3, wNowUnixTimestamp);
       mInsertSubmissionForApproval->runOnce();
 
       mGetPlayersForSubmission->clear();
