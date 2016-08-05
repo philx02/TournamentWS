@@ -41,6 +41,12 @@ public:
   }
 
   template< typename T >
+  void bind(const T &iValue)
+  {
+    bind(1, iValue);
+  }
+
+  template< typename T >
   void bind(int iLocation, const T &iValue)
   {
     static_assert(false, "Statement: cannot bind this type");
@@ -55,6 +61,12 @@ public:
 private:
   sqlite3_stmt *mStatement;
 };
+
+template<>
+void Statement::bind< int >(int iLocation, const int &iValue)
+{
+  sqlite3_bind_int(mStatement, iLocation, iValue);
+}
   
 template<>
 void Statement::bind< size_t >(int iLocation, const size_t &iValue)
