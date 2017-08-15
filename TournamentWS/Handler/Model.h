@@ -246,12 +246,12 @@ private:
         auto wScore1 = sqlite3_column_int(iStatement, 2);
         auto wScore2 = sqlite3_column_int(iStatement, 3);
         auto wApprovals = sqlite3_column_int(iStatement, 4);
-        wPlayersScore[wRow].mGameWon += wScore1;
-        wPlayersScore[wRow].mGameLoss += wScore2;
-        wPlayersScore[wColumn].mGameWon += wScore2;
-        wPlayersScore[wColumn].mGameLoss += wScore1;
         if (wApprovals >= 2)
         {
+          wPlayersScore[wRow].mGameWon += wScore1;
+          wPlayersScore[wRow].mGameLoss += wScore2;
+          wPlayersScore[wColumn].mGameWon += wScore2;
+          wPlayersScore[wColumn].mGameLoss += wScore1;
           ++wMatchesDone;
           if (wScore1 == 2)
           {
@@ -293,8 +293,10 @@ private:
     {
       if (iLeft.mScore == iRight.mScore)
       {
-        auto wTieBreakerLeft = static_cast<double>(iLeft.mGameWon) / static_cast<double>(iLeft.mGameWon + iLeft.mGameLoss);
-        auto wTieBreakerRight = static_cast<double>(iRight.mGameWon) / static_cast<double>(iRight.mGameWon + iRight.mGameLoss);
+        auto wTotalGamesLeft = iLeft.mGameWon + iLeft.mGameLoss;
+        auto wTieBreakerLeft = wTotalGamesLeft != 0 ? static_cast<double>(iLeft.mGameWon) / static_cast<double>(wTotalGamesLeft) : 0.0;
+        auto wTotalGamesRight = iRight.mGameWon + iRight.mGameLoss;
+        auto wTieBreakerRight = wTotalGamesRight != 0 ? static_cast<double>(iRight.mGameWon) / static_cast<double>(wTotalGamesRight) : 0.0;
         return wTieBreakerLeft > wTieBreakerRight;
       }
       return iLeft.mScore > iRight.mScore;
